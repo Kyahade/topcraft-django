@@ -1,0 +1,46 @@
+{% extends 'customer/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Orders</h2>
+
+    <table class="table table-bordered table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Order Type</th>
+                <th>Status</th>
+                <th>Assigned Worker</th>
+                <th>Date Ordered</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>
+                    {% if order.standard_product %}
+                        {{ order.standard_product.product_name }}
+                    {% else %}
+                        Custom Request
+                    {% endif %}
+                </td>
+                <td>{{ order.get_order_type_display }}</td>
+                <td>{{ order.get_status_display }}</td>
+                <td>
+                    {% if order.assigned_worker %}
+                        {{ order.assigned_worker.name }}
+                    {% else %}
+                        Not assigned yet
+                    {% endif %}
+                </td>
+                <td>{{ order.created_at|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">No orders yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

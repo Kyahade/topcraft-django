@@ -1,0 +1,78 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block content %}
+
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h1>{{ title }}</h1>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+{% endif %}
+    <form method="POST" class="card p-4 shadow-sm mt-3">
+        {% csrf_token %}
+        <div class="mb-3">
+    <label class="form-label">Username</label>
+    <input type="text"
+           name="username"
+           class="form-control"
+           required>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password"
+           name="password"
+           class="form-control"
+           required>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Worker Name</label>
+    <input type="text"
+           name="name"
+           class="form-control"
+           required>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Role</label>
+    <input type="text"
+           name="role"
+           class="form-control"
+           required>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Skill</label>
+    <input type="text"
+           name="skill"
+           class="form-control"
+           required>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Status</label>
+
+    <select name="status" class="form-select">
+
+        <option value="Available">
+            Available
+        </option>
+
+        <option value="Busy">
+            Busy
+        </option>
+
+    </select>
+</div>
+
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{% url 'workers' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,5 +1,6 @@
 from django import forms
 from .models import Worker, InventoryItem, Order, Project, CustomRequest, StandardProduct
+from django.utils import timezone
 
 class WorkerForm(forms.ModelForm):
     class Meta:
@@ -14,12 +15,27 @@ class InventoryItemForm(forms.ModelForm):
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['customer_name', 'product_name', 'quantity', 'status']
+        fields = [
+            'customer',
+            'standard_product',
+            'order_type',
+            'status',
+            'assigned_worker'
+        ]
 
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'assigned_worker': forms.Select(attrs={'class': 'form-select'}),
+        }
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = '__all__'
+        fields = ['project_name', 'status', 'deadline']
+        
+class AssignWorkerForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['assigned_worker']
         
 class CustomRequestForm(forms.ModelForm):
     class Meta:

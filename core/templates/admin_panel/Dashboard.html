@@ -1,0 +1,84 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Admin Dashboard</h1>
+        <p class="text-muted">Welcome, {{ request.user.username }}</p>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 p-3">
+            <h6>Total Orders</h6>
+            <h2>{{ orders }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 p-3">
+            <h6>Active Projects</h6>
+            <h2>{{ projects }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 p-3">
+            <h6>Workers</h6>
+            <h2>{{ workers }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 p-3">
+            <h6>Inventory Items</h6>
+            <h2>{{ inventory }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<div class="row mt-5">
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 p-4">
+            <h4>Recent Orders</h4>
+
+            <ul class="list-group mt-3">
+                {% for order in recent_orders %}
+                    <li class="list-group-item">
+                        Order #{{ order.id }} -
+                        {{ order.get_order_type_display }} -
+                        {{ order.get_status_display }}
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted">No recent orders yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 p-4">
+            <h4>Low Stock Alerts</h4>
+
+            <ul class="list-group mt-3">
+                {% for item in low_stock_items %}
+                    <li class="list-group-item text-danger">
+                        {{ item.item_name }} - {{ item.quantity }} {{ item.unit }} remaining
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted">
+                        No low stock items.
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

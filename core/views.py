@@ -1,9 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.http import HttpResponseForbidden
+from django.utils import timezone
+from django.contrib.auth.models import User
 from .models import Worker, InventoryItem, Order, Project, UserProfile, CustomRequest, StandardProduct
-from .forms import InventoryItemForm, WorkerForm, OrderForm, ProjectForm, CustomRequestForm, StandardProductForm
+from .forms import InventoryItemForm, WorkerForm, OrderForm, ProjectForm, CustomRequestForm, StandardProductForm, AssignWorkerForm
+
 
 def role_required(role):
     def decorator(view_func):
@@ -26,41 +30,71 @@ def role_required(role):
         return wrapper
     return decorator
 
+
 @role_required('admin')
 def dashboard(request):
-    workers = Worker.objects.count()
-    inventory = InventoryItem.objects.count()
     orders = Order.objects.count()
     projects = Project.objects.count()
+    workers = Worker.objects.count()
+    inventory = InventoryItem.objects.count()
 
-    context = {
-        'workers': workers,
-        'inventory': inventory,
+    recent_orders = Order.objects.order_by('-created_at')[:5]
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=5)
+
+    return render(request, 'admin_panel/dashboard.html', {
         'orders': orders,
         'projects': projects,
-    }
+        'workers': workers,
+        'inventory': inventory,
+        'recent_orders': recent_orders,
+        'low_stock_items': low_stock_items,
+    })
+    
+def assign_worker(request, pk):
+    project = get_object_or_404(Project, pk=pk)
 
-    return render(request, 'admin/dashboard.html', context)
+    if request.method == 'POST':
+        form = AssignWorkerForm(request.POST, instance=project)
+
+        if form.is_valid():
+            form.save()
+
+            if project.order:
+                project.order.assigned_worker = project.assigned_worker
+                project.order.status = 'assigned'
+                project.order.save()
+
+            project.status = 'Assigned'
+            project.save()
+
+            return redirect('projects')
+    else:
+        form = AssignWorkerForm(instance=project)
+
+    return render(request, 'admin_panel/assign_worker.html', {
+        'form': form,
+        'project': project
+    })
 
 @role_required('admin')
 def inventory(request):
     items = InventoryItem.objects.all()
-    return render(request, 'admin/inventory.html', {'items': items})
+    return render(request, 'admin_panel/inventory.html', {'items': items})
 
 @role_required('admin')
 def workers(request):
     workers = Worker.objects.all()
-    return render(request, 'admin/workers.html', {'workers': workers})
+    return render(request, 'admin_panel/workers.html', {'workers': workers})
 
 @role_required('admin')
 def orders(request):
     orders = Order.objects.all()
-    return render(request, 'admin/orders.html', {'orders': orders})
+    return render(request, 'admin_panel/orders.html', {'orders': orders})
 
 @role_required('admin')
 def projects(request):
     projects = Project.objects.all()
-    return render(request, 'admin/projects.html', {'projects': projects})
+    return render(request, 'admin_panel/projects.html', {'projects': projects})
 
 @role_required('admin')
 def add_inventory(request):
@@ -70,7 +104,7 @@ def add_inventory(request):
         form.save()
         return redirect('inventory')
 
-    return render(request, 'admin/inventory_form.html', {'form': form, 'title': 'Add Inventory Item'})
+    return render(request, 'admin_panel/inventory_form.html', {'form': form, 'title': 'Add Inventory Item'})
 
 @role_required('admin')
 def edit_inventory(request, id):
@@ -81,7 +115,7 @@ def edit_inventory(request, id):
         form.save()
         return redirect('inventory')
 
-    return render(request, 'admin/inventory_form.html', {'form': form, 'title': 'Edit Inventory Item'})
+    return render(request, 'admin_panel/inventory_form.html', {'form': form, 'title': 'Edit Inventory Item'})
 
 @role_required('admin')
 def delete_inventory(request, id):
@@ -91,17 +125,47 @@ def delete_inventory(request, id):
         item.delete()
         return redirect('inventory')
 
-    return render(request, 'admin/delete_confirm.html', {'item': item, 'type': 'Inventory Item'})
+    return render(request, 'admin_panel/delete_confirm.html', {'item': item, 'type': 'Inventory Item'})
 
 @role_required('admin')
 def add_worker(request):
-    form = WorkerForm(request.POST or None)
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        name = request.POST.get('name')
+        role = request.POST.get('role')
+        skill = request.POST.get('skill')
+        status = request.POST.get('status')
 
-    if form.is_valid():
-        form.save()
+        if User.objects.filter(username=username).exists():
+            return render(request, 'admin_panel/worker_form.html', {
+                'title': 'Add Worker',
+                'error': 'Username already exists. Please use another username.'
+            })
+
+        user = User.objects.create_user(
+            username=username,
+            password=password
+        )
+
+        UserProfile.objects.create(
+            user=user,
+            role='worker'
+        )
+
+        Worker.objects.create(
+            user=user,
+            name=name,
+            role=role,
+            skill=skill,
+            status=status
+        )
+
         return redirect('workers')
 
-    return render(request, 'admin/worker_form.html', {'form': form, 'title': 'Add Worker'})
+    return render(request, 'admin_panel/worker_form.html', {
+        'title': 'Add Worker'
+    })
 
 @role_required('admin')
 def edit_worker(request, id):
@@ -112,7 +176,7 @@ def edit_worker(request, id):
         form.save()
         return redirect('workers')
 
-    return render(request, 'admin/worker_form.html', {'form': form, 'title': 'Edit Worker'})
+    return render(request, 'admin_panel/worker_form.html', {'form': form, 'title': 'Edit Worker'})
 
 @role_required('admin')
 def delete_worker(request, id):
@@ -122,7 +186,7 @@ def delete_worker(request, id):
         worker.delete()
         return redirect('workers')
 
-    return render(request, 'admin/delete_worker.html', {'worker': worker})
+    return render(request, 'admin_panel/delete_worker.html', {'worker': worker})
 
 @role_required('admin')
 def add_order(request):
@@ -132,7 +196,7 @@ def add_order(request):
         form.save()
         return redirect('orders')
 
-    return render(request, 'admin/order_form.html', {'form': form, 'title': 'Add Order'})
+    return render(request, 'admin_panel/order_form.html', {'form': form, 'title': 'Add Order'})
 
 @role_required('admin')
 def edit_order(request, id):
@@ -143,7 +207,7 @@ def edit_order(request, id):
         form.save()
         return redirect('orders')
 
-    return render(request, 'admin/order_form.html', {'form': form, 'title': 'Edit Order'})
+    return render(request, 'admin_panel/order_form.html', {'form': form, 'title': 'Edit Order'})
 
 @role_required('admin')
 def delete_order(request, id):
@@ -153,7 +217,7 @@ def delete_order(request, id):
         order.delete()
         return redirect('orders')
 
-    return render(request, 'admin/delete_order.html', {'order': order})
+    return render(request, 'admin_panel/delete_order.html', {'order': order})
 
 @role_required('admin')
 def add_project(request):
@@ -163,7 +227,7 @@ def add_project(request):
         form.save()
         return redirect('projects')
 
-    return render(request, 'admin/project_form.html', {'form': form, 'title': 'Add Project'})
+    return render(request, 'admin_panel/project_form.html', {'form': form, 'title': 'Add Project'})
 
 @role_required('admin')
 def edit_project(request, id):
@@ -174,7 +238,7 @@ def edit_project(request, id):
         form.save()
         return redirect('projects')
 
-    return render(request, 'admin/project_form.html', {'form': form, 'title': 'Edit Project'})
+    return render(request, 'admin_panel/project_form.html', {'form': form, 'title': 'Edit Project'})
 
 @role_required('admin')
 def delete_project(request, id):
@@ -184,7 +248,7 @@ def delete_project(request, id):
         project.delete()
         return redirect('projects')
 
-    return render(request, 'admin/delete_project.html', {'project': project})
+    return render(request, 'admin_panel/delete_project.html', {'project': project})
 
 
 def login_view(request):
@@ -230,24 +294,46 @@ def customer_dashboard(request):
 
 @role_required('worker')
 def worker_dashboard(request):
-    return render(request, "worker/worker_dashboard.html")
+    worker = Worker.objects.filter(user=request.user).first()
+
+    projects = Project.objects.filter(
+        assigned_worker=worker
+    ).exclude(status="Completed")
+
+    return render(request, 'worker/worker_dashboard.html', {
+        'projects': projects
+    })
 
 @role_required('admin')
 def custom_requests(request):
     requests = CustomRequest.objects.all()
-    return render(request, 'admin/custom_requests.html', {'requests': requests})
+    return render(request, 'admin_panel/custom_requests.html', {'requests': requests})
 
 
 @role_required('customer')
 def add_custom_request(request):
-    form = CustomRequestForm(request.POST or None)
+    if request.method == "POST":
+        form = CustomRequestForm(request.POST)
 
-    if form.is_valid():
-        form.save()
-        return redirect('customer_dashboard')
+        if form.is_valid():
+            custom_request = form.save()
 
-    return render(request, 'customer/custom_request_form.html', {'form': form, 'title': 'Submit Custom Request'})
+            Order.objects.create(
+                customer=request.user,
+                order_type="custom",
+                status="pending"
+            )
 
+            messages.success(request, "Custom request submitted successfully.")
+            return redirect('customer_orders')
+
+    else:
+        form = CustomRequestForm()
+
+    return render(request, 'customer/custom_request_form.html', {
+        'form': form,
+        'title': 'Submit Custom Request'
+    })
 
 @role_required('admin')
 def edit_custom_request(request, id):
@@ -258,7 +344,7 @@ def edit_custom_request(request, id):
         form.save()
         return redirect('custom_requests')
 
-    return render(request, 'admin/custom_request_form.html', {'form': form, 'title': 'Update Custom Request'})
+    return render(request, 'admin_panel/custom_request_form.html', {'form': form, 'title': 'Update Custom Request'})
 
 
 @role_required('admin')
@@ -269,12 +355,12 @@ def delete_custom_request(request, id):
         custom_request.delete()
         return redirect('custom_requests')
 
-    return render(request, 'admin/delete_custom_request.html', {'custom_request': custom_request})
+    return render(request, 'admin_panel/delete_custom_request.html', {'custom_request': custom_request})
 
 @role_required('admin')
 def standard_products(request):
     products = StandardProduct.objects.all()
-    return render(request, 'admin/standard_products.html', {'products': products})
+    return render(request, 'admin_panel/standard_products.html', {'products': products})
 
 
 @role_required('admin')
@@ -285,7 +371,7 @@ def add_standard_product(request):
         form.save()
         return redirect('standard_products')
 
-    return render(request, 'admin/standard_product_form.html', {
+    return render(request, 'admin_panel/standard_product_form.html', {
         'form': form,
         'title': 'Add Standard Product'
     })
@@ -300,7 +386,7 @@ def edit_standard_product(request, id):
         form.save()
         return redirect('standard_products')
 
-    return render(request, 'admin/standard_product_form.html', {
+    return render(request, 'admin_panel/standard_product_form.html', {
         'form': form,
         'title': 'Edit Standard Product'
     })
@@ -314,7 +400,96 @@ def delete_standard_product(request, id):
         product.delete()
         return redirect('standard_products')
 
-    return render(request, 'admin/delete_standard_product.html', {
+    return render(request, 'admin_panel/delete_standard_product.html', {
         'product': product
     })
 
+@role_required('customer')
+def customer_products(request):
+    products = StandardProduct.objects.filter(status="Available")
+    return render(request, 'customer/customer_products.html', {'products': products})
+
+
+@role_required('customer')
+def order_standard_product(request, product_id):
+    product = get_object_or_404(StandardProduct, id=product_id)
+
+    if request.method == "POST":
+        Order.objects.create(
+            customer=request.user,
+            standard_product=product,
+            order_type="standard",
+            status="pending"
+        )
+        messages.success(request, "Order submitted successfully. Please wait for admin review.")
+        return redirect('customer_orders')
+
+    return render(request, 'customer/order_standard_product.html', {'product': product})
+
+
+@role_required('customer')
+def customer_orders(request):
+    orders = Order.objects.filter(customer=request.user).order_by('-created_at')
+    return render(request, 'customer/customer_orders.html', {'orders': orders})
+
+@role_required('worker')
+def start_project(request, pk):
+    project = Project.objects.get(pk=pk)
+
+    project.status = "In Production"
+    project.save()
+
+    return redirect('worker_dashboard')
+
+@role_required('worker')
+def complete_project(request, pk):
+    project = Project.objects.get(pk=pk)
+
+    project.status = "Completed"
+    project.save()
+
+    return redirect('worker_dashboard')
+
+@role_required('worker')
+def start_order(request, pk):
+    order = Order.objects.get(pk=pk)
+    order.status = 'in_progress'
+    order.save()
+
+    return redirect('worker_dashboard')
+
+
+@role_required('worker')
+def complete_order(request, pk):
+    order = Order.objects.get(pk=pk)
+    order.status = 'completed'
+    order.save()
+
+    return redirect('worker_dashboard')
+
+def accept_order(request, pk):
+    order = Order.objects.get(pk=pk)
+
+    order.status = 'accepted'
+    order.save()
+
+    Project.objects.get_or_create(
+        order=order,
+        defaults={
+            'project_name': f'Order #{order.id} Project',
+            'assigned_worker': order.assigned_worker,
+            'status': 'Assigned',
+            'deadline': timezone.now().date(),
+        }
+    )
+
+    return redirect('orders')
+
+
+def reject_order(request, pk):
+    order = Order.objects.get(pk=pk)
+
+    order.status = 'rejected'
+    order.save()
+
+    return redirect('orders')

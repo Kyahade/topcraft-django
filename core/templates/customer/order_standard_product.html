@@ -1,0 +1,22 @@
+{% extends 'customer/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3>Confirm Standard Order</h3>
+
+            <p><strong>Product:</strong> {{ product.product_name }}</p>
+            <p><strong>Category:</strong> {{ product.category }}</p>
+            <p><strong>Description:</strong> {{ product.description }}</p>
+            <p><strong>Price:</strong> ₱{{ product.price }}</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Submit Order</button>
+                <a href="{% url 'customer_products' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

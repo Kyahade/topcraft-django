@@ -1,0 +1,86 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h1>Orders</h1>
+
+    <a href="{% url 'add_order' %}" class="btn btn-primary mb-3">Add Order</a>
+
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Assigned Worker</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+    {% for order in orders %}
+    <tr>
+
+        <td>
+            {% if order.customer %}
+                {{ order.customer.username }}
+            {% endif %}
+        </td>
+
+        <td>
+            {% if order.standard_product %}
+                {{ order.standard_product.product_name }}
+            {% else %}
+                Custom Request
+            {% endif %}
+        </td>
+
+        <td>
+            {{ order.get_order_type_display }}
+        </td>
+
+        <td>
+            {{ order.get_status_display }}
+        </td>
+
+        <td>
+            {% if order.assigned_worker %}
+                {{ order.assigned_worker.name }}
+            {% else %}
+                Not Assigned
+            {% endif %}
+        </td>
+
+        <td>
+    {% if order.status == "pending" %}
+
+        <a href="{% url 'accept_order' order.id %}" class="btn btn-success btn-sm">
+            Accept
+        </a>
+
+        <a href="{% url 'reject_order' order.id %}" class="btn btn-danger btn-sm">
+            Reject
+        </a>
+
+    {% else %}
+
+        <a href="{% url 'edit_order' order.id %}" class="btn btn-primary btn-sm">
+            Review
+        </a>
+
+    {% endif %}
+
+    <a href="{% url 'delete_order' order.id %}" class="btn btn-outline-danger btn-sm">
+        Delete
+    </a>
+</td>
+
+    </tr>
+    {% endfor %}
+</tbody>
+    </table>
+</div>
+
+{% endblock %}

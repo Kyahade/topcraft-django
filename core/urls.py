@@ -27,9 +27,20 @@ urlpatterns = [
     path('custom-requests/add/', views.add_custom_request, name='add_custom_request'),
     path('custom-requests/edit/<int:id>/', views.edit_custom_request, name='edit_custom_request'),
     path('custom-requests/delete/<int:id>/', views.delete_custom_request, name='delete_custom_request'),
+    path('customer/products/', views.customer_products, name='customer_products'),
+    path('customer/products/<int:product_id>/order/', views.order_standard_product, name='order_standard_product'),
+    path('customer/orders/', views.customer_orders, name='customer_orders'),
     path('standard-products/', views.standard_products, name='standard_products'),
     path('standard-products/add/', views.add_standard_product, name='add_standard_product'),
     path('standard-products/edit/<int:id>/', views.edit_standard_product, name='edit_standard_product'),
     path('standard-products/delete/<int:id>/', views.delete_standard_product, name='delete_standard_product'),
-]
+    path('worker/dashboard/', views.worker_dashboard, name='worker_dashboard'),
+    path('project/<int:pk>/start/', views.start_project, name='start_project'),
+    path('project/<int:pk>/complete/', views.complete_project, name='complete_project'),
+    path('worker/order/<int:pk>/start/', views.start_order, name='start_order'),
+    path('worker/order/<int:pk>/complete/', views.complete_order, name='complete_order'),
+    path('orders/<int:pk>/accept/', views.accept_order, name='accept_order'),
+    path('orders/<int:pk>/reject/', views.reject_order, name='reject_order'),
+    path('projects/<int:pk>/assign-worker/', views.assign_worker, name='assign_worker'),
+    ]
 
