@@ -1,0 +1,35 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+    path('inventory/', views.inventory, name='inventory'),
+    path('workers/', views.workers, name='workers'),
+    path('orders/', views.orders, name='orders'),
+    path('projects/', views.projects, name='projects'),
+    path('inventory/add/', views.add_inventory, name='add_inventory'),
+    path('inventory/edit/<int:id>/', views.edit_inventory, name='edit_inventory'),
+    path('inventory/delete/<int:id>/', views.delete_inventory, name='delete_inventory'),
+    path('workers/add/', views.add_worker, name='add_worker'),
+    path('workers/edit/<int:id>/', views.edit_worker, name='edit_worker'),
+    path('workers/delete/<int:id>/', views.delete_worker, name='delete_worker'),    
+    path('orders/add/', views.add_order, name='add_order'),
+    path('orders/edit/<int:id>/', views.edit_order, name='edit_order'),
+    path('orders/delete/<int:id>/', views.delete_order, name='delete_order'),   
+    path('projects/add/', views.add_project, name='add_project'),
+    path('projects/edit/<int:id>/', views.edit_project, name='edit_project'),
+    path('projects/delete/<int:id>/', views.delete_project, name='delete_project'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('customer/', views.customer_dashboard, name='customer_dashboard'),
+    path('worker-dashboard/', views.worker_dashboard, name='worker_dashboard'),
+    path('custom-requests/', views.custom_requests, name='custom_requests'),
+    path('custom-requests/add/', views.add_custom_request, name='add_custom_request'),
+    path('custom-requests/edit/<int:id>/', views.edit_custom_request, name='edit_custom_request'),
+    path('custom-requests/delete/<int:id>/', views.delete_custom_request, name='delete_custom_request'),
+    path('standard-products/', views.standard_products, name='standard_products'),
+    path('standard-products/add/', views.add_standard_product, name='add_standard_product'),
+    path('standard-products/edit/<int:id>/', views.edit_standard_product, name='edit_standard_product'),
+    path('standard-products/delete/<int:id>/', views.delete_standard_product, name='delete_standard_product'),
+]
+
