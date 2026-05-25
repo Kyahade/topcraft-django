@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.contrib.auth.models import User
 from .models import Worker, InventoryItem, Order, Project, UserProfile, CustomRequest, StandardProduct
-from .forms import InventoryItemForm, WorkerForm, OrderForm, ProjectForm, CustomRequestForm, StandardProductForm, AssignWorkerForm
+from .forms import InventoryItemForm, WorkerForm, OrderForm, ProjectForm, CustomRequestForm, StandardProductForm, AssignWorkerForm, CustomerProfileForm
 
 
 def role_required(role):
@@ -493,3 +493,71 @@ def reject_order(request, pk):
     order.save()
 
     return redirect('orders')
+
+def register_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
+        email = request.POST.get("email")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return redirect("register")
+        
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email is already registered.")
+            return redirect("register")
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect("register")
+
+        if len(password) < 8:
+            messages.error(request, "Password must be at least 8 characters long.")
+            return redirect("register")
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+
+        UserProfile.objects.create(
+            user=user,
+            role="customer"
+        )
+
+        messages.success(request, "Customer account created successfully. Please login.")
+        return redirect("login")
+
+    return render(request, "core/register.html")
+
+@login_required
+def customer_profile(request):
+    profile = request.user.userprofile
+
+    if request.method == "POST":
+        form = CustomerProfileForm(
+            request.POST,
+            request.FILES,
+            instance=profile,
+            user=request.user
+        )
+
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, request.user)
+            messages.success(request, "Profile updated successfully.")
+            return redirect("customer_profile")
+
+    else:
+        form = CustomerProfileForm(
+            instance=profile,
+            user=request.user
+        )
+
+    return render(request, "customer/profile.html", {
+        "form": form,
+        "profile": profile
+    })

@@ -3,56 +3,163 @@
 
 {% block content %}
 
-<div class="container mt-5">
-    <h1 class="mb-3">Customer Dashboard</h1>
+<div class="container-fluid">
 
-    <p class="text-muted">
-        Welcome to TopCraft. Here you can browse furniture products,
-        submit custom requests, and track your orders.
-    </p>
+    <div class="mb-5">
 
-    <div class="row mt-4">
+        <h1 class="mb-2">
+            Hi, {{ request.user.username }}
+        </h1>
 
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5>Browse Products</h5>
-                    <p>View available standard furniture products.</p>
+        <p class="text-muted fs-5">
+            Welcome back to TopCraft. Manage your furniture orders,
+            custom requests, and products in one place.
+        </p>
 
-                    <a href="{% url 'customer_products' %}" class="btn btn-primary w-100">
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Products -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="card h-100 p-3">
+
+                <div class="card-body d-flex flex-column">
+
+                    <div class="mb-4">
+
+                        <div
+                            class="rounded-circle d-flex align-items-center justify-content-center"
+                            style="
+                                width: 60px;
+                                height: 60px;
+                                background: #ede4d7;
+                                font-size: 26px;
+                            "
+                        >
+                            🪑
+                        </div>
+
+                    </div>
+
+                    <h4 class="fw-bold">
+                        Browse Products
+                    </h4>
+
+                    <p class="text-muted flex-grow-1">
+                        Explore available standard furniture products
+                        crafted by TopCraft.
+                    </p>
+
+                    <a
+                        href="{% url 'customer_products' %}"
+                        class="btn btn-dark rounded-pill"
+                    >
                         View Products
                     </a>
+
                 </div>
+
             </div>
+
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5>Custom Requests</h5>
-                    <p>Request customized furniture designs.</p>
+        <!-- Custom Requests -->
 
-                    <a href="{% url 'add_custom_request' %}" class="btn btn-dark w-100">
+        <div class="col-lg-4 col-md-6">
+
+            <div class="card h-100 p-3">
+
+                <div class="card-body d-flex flex-column">
+
+                    <div class="mb-4">
+
+                        <div
+                            class="rounded-circle d-flex align-items-center justify-content-center"
+                            style="
+                                width: 60px;
+                                height: 60px;
+                                background: #ede4d7;
+                                font-size: 26px;
+                            "
+                        >
+                            ✏️
+                        </div>
+
+                    </div>
+
+                    <h4 class="fw-bold">
+                        Custom Requests
+                    </h4>
+
+                    <p class="text-muted flex-grow-1">
+                        Submit customized furniture requests
+                        tailored to your preferred design.
+                    </p>
+
+                    <a
+                        href="{% url 'add_custom_request' %}"
+                        class="btn btn-dark rounded-pill"
+                    >
                         Submit Request
                     </a>
+
                 </div>
+
             </div>
+
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5>My Orders</h5>
-                    <p>Track your submitted orders and statuses.</p>
+        <!-- Orders -->
 
-                    <a href="{% url 'customer_orders' %}" class="btn btn-success w-100">
+        <div class="col-lg-4 col-md-6">
+
+            <div class="card h-100 p-3">
+
+                <div class="card-body d-flex flex-column">
+
+                    <div class="mb-4">
+
+                        <div
+                            class="rounded-circle d-flex align-items-center justify-content-center"
+                            style="
+                                width: 60px;
+                                height: 60px;
+                                background: #ede4d7;
+                                font-size: 26px;
+                            "
+                        >
+                            📦
+                        </div>
+
+                    </div>
+
+                    <h4 class="fw-bold">
+                        My Orders
+                    </h4>
+
+                    <p class="text-muted flex-grow-1">
+                        Track your submitted furniture orders
+                        and monitor production progress.
+                    </p>
+
+                    <a
+                        href="{% url 'customer_orders' %}"
+                        class="btn btn-dark rounded-pill"
+                    >
                         View Orders
                     </a>
+
                 </div>
+
             </div>
+
         </div>
 
     </div>
+
 </div>
 
 {% endblock %}

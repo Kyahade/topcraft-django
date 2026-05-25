@@ -42,5 +42,7 @@ urlpatterns = [
     path('orders/<int:pk>/accept/', views.accept_order, name='accept_order'),
     path('orders/<int:pk>/reject/', views.reject_order, name='reject_order'),
     path('projects/<int:pk>/assign-worker/', views.assign_worker, name='assign_worker'),
+    path('register/', views.register_view, name='register'),
+    path('customer/profile/', views.customer_profile, name='customer_profile'),
     ]
 
